@@ -13,63 +13,40 @@
         </a>
     </p>
 
-    <p>
-        <strong>Genre:</strong>
-        {{ $genre === 'all' ? 'All Genres' : (is_object($genre) ? $genre->name : ($genres->firstWhere('id', (int) $genre)?->name ?? 'Unknown')) }}
-        |
-        <strong>Director:</strong> {{ $director }}
-    </p>
+   <form method="GET" action="{{ route('movies.index') }}" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <input
+            type="text"
+            name="search"
+            class="form-control"
+            placeholder="Search by title..."
+            value="{{ $search }}"
+        >
+    </div>
 
-    <h5>Filter by Genre</h5>
+    <div class="col-md-3">
+        <select name="genre" class="form-select">
+            <option value="all" @selected($genre === 'all')>All Genres</option>
+            @foreach ($genres as $itemGenre)
+                <option value="{{ $itemGenre->id }}" @selected((string) $genre === (string) $itemGenre->id)>
+                    {{ $itemGenre->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
 
-    @foreach ($genres as $itemGenre)
-        <a href="{{ route('movies.index', array_filter([
-            'genre' => $itemGenre->id,
-            'director' => $director !== 'all' ? $director : null,
-        ])) }}">
-            {{ $itemGenre->name }}
-        </a>
-    @endforeach
+    <div class="col-md-3">
+        <select name="sort" class="form-select">
+            <option value="title" @selected($sort === 'title')>Sort by Title</option>
+            <option value="director" @selected($sort === 'director')>Sort by Director</option>
+        </select>
+    </div>
 
-    <a href="{{ route('movies.index', array_filter([
-        'director' => $director !== 'all' ? $director : null,
-    ])) }}">
-        All Genres
-    </a>
-
-    <br><br>
-
-    <h5>Filter by Director</h5>
-
-    @php
-        $directors = [
-            'Cathy Garcia-Sampana',
-            'Antoinette Jadaone',
-            'Jerrold Tarog',
-            'Erik Matti',
-        ];
-    @endphp
-
-    <a href="{{ route('movies.index', array_filter([
-        'genre' => $genre !== 'all' ? (is_object($genre) ? $genre->id : $genre) : null,
-    ])) }}">
-        All Directors
-    </a>
-
-    @foreach ($directors as $itemDirector)
-        <a href="{{ route('movies.index', array_filter([
-            'genre' => $genre !== 'all' ? (is_object($genre) ? $genre->id : $genre) : null,
-            'director' => $itemDirector,
-        ])) }}">
-            {{ $itemDirector }}
-        </a>
-    @endforeach
-
-    <p>
-        <a href="{{ route('movies.index') }}">
-            Clear Both Filters
-        </a>
-    </p>
+    <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Apply</button>
+        <a href="{{ route('movies.index') }}" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
 
     <table class="table table-striped table-bordered">
         <tr>
@@ -129,6 +106,7 @@
         @endforelse
 
     </table>
+    {{ $movies->links() }}
 
     <p>Queries: {{ count(\Illuminate\Support\Facades\DB::getQueryLog()) }}</p>
 

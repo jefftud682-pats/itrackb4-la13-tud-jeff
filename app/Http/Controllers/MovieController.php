@@ -19,29 +19,34 @@ class MovieController extends Controller
 
     public function index(Request $request)
     {
-        DB::enableQueryLog();
-
+        $search = $request->query('search');
         $genre = $request->query('genre', 'all');
-        $director = $request->query('director', 'all');
+        $sort = $request->query('sort', 'title');
+
+        if (! in_array($sort, ['title', 'director'])) {
+            $sort = 'title';
+        }
 
         $query = Movie::with('genre');
 
-        if ($genre !== 'all') {
+        if ($search) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        if ($genre !== 'all' && $genre !== null && $genre !== '') {
             $query->where('genre_id', $genre);
         }
 
-        if ($director !== 'all') {
-            $query->where('director', $director);
-        }
 
-        $movies = $query->get();
+        $movies = $query->paginate(6)->withQueryString();
         $genres = Genre::all();
 
         return view('movies.index', compact(
             'movies',
             'genres',
+            'search',
             'genre',
-            'director'
+            'sort'
         ));
     }
 
@@ -101,14 +106,14 @@ class MovieController extends Controller
     }
 
     public function destroy(Movie $movie)
-{
-    abort_if($movie->genre->movies()->count() === 1, 403);
+    {
+        abort_if($movie->genre->movies()->count() === 1, 403);
 
-    $movie->delete();
+        $movie->delete();
 
-    return redirect()->route('movies.index')
-        ->with('success', 'Movie deleted successfully.');
-}
+        return redirect()->route('movies.index')
+            ->with('success', 'Movie deleted successfully.');
+    }
 
     public function featured()
     {
